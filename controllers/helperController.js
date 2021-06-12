@@ -82,7 +82,6 @@ function handleGetDataAll(req, res) {
     var totalConfirmedCases = 0;
     var totalRecoveredCases = 0;
     var totalDeathCases = 0;
-    var GetDataAllArray = [];
     
      CovidData.findOne({}).lean().then(async (result) => {
 
@@ -105,13 +104,41 @@ function handleGetDataAll(req, res) {
       });
 
        
-    GetDataAllArray.push({
-       totalConfirmedCases,
-       totalRecoveredCases,
-       totalDeathCases
-     });
+    const totalActiveCases = totalConfirmedCases - (totalRecoveredCases + totalDeathCases);
+    const totalActivePercentage = (totalActiveCases/totalConfirmedCases) * 100;
+    const totalRecoveredPercentage = (totalRecoveredCases/totalConfirmedCases) * 100; 
+    const totalDeathPercentage = (totalDeathCases/totalConfirmedCases) * 100;
 
-     res.json(GetDataAllArray);
+
+     res.json([
+       {
+         status: "Confirmed",
+         data: {
+          totalConfirmedCases
+         },
+       },
+       {
+        status: "Active",
+        data: {
+         totalActiveCases,
+         totalActivePercentage
+        }
+       },
+       {
+        status: "Recovered",
+        data: {
+          totalRecoveredCases,
+          totalRecoveredPercentage
+        }
+       },
+       {
+        status: "Deceased",
+        data: {
+          totalDeathCases,
+         totalDeathPercentage
+        }
+       }
+     ]);
          
      })
      .catch(error => {
