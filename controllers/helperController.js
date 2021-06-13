@@ -3,6 +3,7 @@ const csvtojson = require('csvtojson');
 const createError = require('http-errors');
 const CovidData = require('../models/covidDataSchema');
 const stateCodeMappingObject = require('./dataMapping');
+const { covidLevelGenerator, averageCases, covidLevelCalculator } = require('./helperFunctions');
 
 const routes = [
   {
@@ -76,6 +77,8 @@ async function handlePostCovidData(req, res) {
 
 }
 
+
+
 function handleGetDataAll(req, res) {
    try {
 
@@ -109,6 +112,8 @@ function handleGetDataAll(req, res) {
     const totalRecoveredPercentage = (totalRecoveredCases/totalConfirmedCases) * 100; 
     const totalDeathPercentage = (totalDeathCases/totalConfirmedCases) * 100;
 
+    
+
 
      res.json([
        {
@@ -135,7 +140,7 @@ function handleGetDataAll(req, res) {
         status: "Deceased",
         data: {
           totalDeathCases,
-         totalDeathPercentage
+          totalDeathPercentage
         }
        }
      ]);
@@ -153,9 +158,33 @@ function handleGetDataAll(req, res) {
 
 function handleGetDataAllStateWise(req, res) {
   try {
+
+    var totalConfirmedCases = 0;
+    var totalRecoveredCases = 0;
+    var totalDeathCases = 0;
     var GetDataAllArrayStateWise = [];
     
-     CovidData.findOne({}).lean().then((result) => {
+     CovidData.findOne({}).lean().then(async (result) => {
+
+      const getConfirmedCasesArray = await result.data.filter(obj => obj.Status === "Confirmed");
+      getConfirmedCasesArray.forEach((obj) => {
+       totalConfirmedCases += Number(obj.TT);
+       });
+
+      
+     const getRecoveredCasesArray = await result.data.filter(obj => obj.Status === "Recovered");
+     getRecoveredCasesArray.forEach((obj) => {
+         totalRecoveredCases += Number(obj.TT);
+       });
+
+
+     const getDeathCasesArray = await result.data.filter(obj => obj.Status === "Deceased");
+     getDeathCasesArray.forEach((obj) => {
+         totalDeathCases += Number(obj.TT);
+     });
+
+
+     const totalActiveCases = totalConfirmedCases - (totalRecoveredCases + totalDeathCases); 
 
     
         stateCodeMappingObject.forEach((state) => {
@@ -179,15 +208,68 @@ function handleGetDataAllStateWise(req, res) {
                DeathCases += Number(obj[state.code]);
             });
 
+            const ActiveCases = ConfirmedCases - ( RecoveredCases + DeathCases );
+            const ActivePercentage = (ActiveCases/ConfirmedCases) * 100;
+            const RecoveredPercentage = (RecoveredCases/ConfirmedCases) * 100;
+            const DeathPercentage = (DeathCases/ConfirmedCases) * 100;
+
+            const [
+              averageConfirmedCases,
+              averageActiveCases,
+              averageRecoveredCases,
+              averageDeathCases
+            ] = averageCases(totalConfirmedCases, totalActiveCases, totalRecoveredCases, totalDeathCases);
+            
+
+            const ConfirmedCasesLevelArray = covidLevelGenerator(averageConfirmedCases);
+            const ActiveCasesLevelArray = covidLevelGenerator(averageActiveCases);
+            const RecoveredCasesLevelArray = covidLevelGenerator(averageRecoveredCases);
+            const DeathCasesLevelArray = covidLevelGenerator(averageDeathCases);
+
+            const ConfirmedLevel = covidLevelCalculator(ConfirmedCases, ConfirmedCasesLevelArray);
+            const ActiveLevel = covidLevelCalculator(ConfirmedCases, ActiveCasesLevelArray);
+            const RecoveredLevel = covidLevelCalculator(ConfirmedCases, RecoveredCasesLevelArray);
+            const DeathLevel = covidLevelCalculator(ConfirmedCases, DeathCasesLevelArray);
+
            GetDataAllArrayStateWise.push({
              name: state.name,
-             ConfirmedCases,
-             RecoveredCases,
-             DeathCases
+             info: [
+               {
+                 status: "Confirmed",
+                 data: {
+                    ConfirmedCases,
+                    ConfirmedLevel
+                 } 
+               },
+               {
+                status: "Active",
+                data: {
+                   ActiveCases,
+                   ActivePercentage,
+                   ActiveLevel
+                } 
+              },
+              {
+                status: "Recovered",
+                data: {
+                   RecoveredCases,
+                   RecoveredPercentage,
+                   RecoveredLevel
+                } 
+              },
+              {
+                status: "Death",
+                data: {
+                   DeathCases,
+                   DeathPercentage,
+                   DeathLevel
+                } 
+              }
+             ]
            })
             
           });
-
+          
       res.json(GetDataAllArrayStateWise);
     
          
