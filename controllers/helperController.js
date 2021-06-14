@@ -3,7 +3,7 @@ const csvtojson = require('csvtojson');
 const createError = require('http-errors');
 const CovidData = require('../models/covidDataSchema');
 const stateCodeMappingObject = require('./dataMapping');
-const { covidLevelGenerator, averageCases, covidLevelCalculator } = require('./helperFunctions');
+const { covidLevelSetter, covidLevelCalculator, findMax, findMin } = require('./helperFunctions');
 
 const routes = [
   {
@@ -26,6 +26,16 @@ const routes = [
     method: 'GET',
     handler: handleGetDataStateWiseDaily
   },
+  {
+    path: '/getCovidLevelStateWise',
+    method: 'GET',
+    handler: handleGetCovidLevelStateWise
+  },
+  // {
+  //   path: '/',
+  //   method: 'GET',
+  //   handler: handleCovidLevels
+  // }
 
 ];
 
@@ -156,37 +166,181 @@ function handleGetDataAll(req, res) {
 }
 
 
+function handleCovidLevels() {
+  try {
+    const ConfirmedCasesStateWiseArray = [];
+    const ActiveCasesStateWiseArray = [];
+    const RecoveredCasesStateWiseArray = [];
+    const DeathCasesStateWiseArray = [];
+
+    CovidData.findOne({}).lean().then(async (result) => {
+
+    stateCodeMappingObject.forEach((state) => {
+
+      var ConfirmedCases = 0;
+      var RecoveredCases = 0;
+      var DeathCases = 0;
+
+      const getConfirmedCasesArray = result.data.filter(obj => obj.Status === "Confirmed");
+        getConfirmedCasesArray.forEach((obj) => {
+          ConfirmedCases += Number(obj[state.code]);
+        });
+
+        const getRecoveredCasesArray = result.data.filter(obj => obj.Status === "Recovered");
+        getRecoveredCasesArray.forEach((obj) => {
+           RecoveredCases += Number(obj[state.code]);
+        });
+
+        const getDeathCasesArray = result.data.filter(obj => obj.Status === "Deceased");
+        getDeathCasesArray.forEach((obj) => {
+           DeathCases += Number(obj[state.code]);
+        });
+
+        const ActiveCases = ConfirmedCases - (RecoveredCases + DeathCases);
+        
+
+        ConfirmedCasesStateWiseArray.push(ConfirmedCases);
+        ActiveCasesStateWiseArray.push(ActiveCases);
+        RecoveredCasesStateWiseArray.push(RecoveredCases);
+        DeathCasesStateWiseArray.push(DeathCases);
+        
+      });
+
+      const { ConfirmMax, ActiveMax, RecoveredMax, DeathMax } = findMax(ConfirmedCasesStateWiseArray, ActiveCasesStateWiseArray, RecoveredCasesStateWiseArray, DeathCasesStateWiseArray);
+      const { ConfirmMin, ActiveMin, RecoveredMin, DeathMin } = findMin(ConfirmedCasesStateWiseArray, ActiveCasesStateWiseArray, RecoveredCasesStateWiseArray, DeathCasesStateWiseArray);
+
+      const {
+        ConfirmLevels,
+        ActiveLevels,
+        RecoveredLevels,
+        DeathLevels
+       } = covidLevelCalculator(ConfirmMax, ActiveMax, RecoveredMax, DeathMax , ConfirmMin, ActiveMin, RecoveredMin, DeathMin );
+
+      const arr = {
+        ConfirmLevels,
+        ActiveLevels,
+        RecoveredLevels,
+        DeathLevels
+      };
+
+       return arr;
+
+    });
+    
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+function handleGetCovidLevelStateWise(req, res) {
+  try {
+    const GetCovidLevelStateWiseArray = [];
+    
+    const ConfirmedCasesStateWiseArray = [];
+    const ActiveCasesStateWiseArray = [];
+    const RecoveredCasesStateWiseArray = [];
+    const DeathCasesStateWiseArray = [];
+
+    CovidData.findOne({}).lean().then(async (result) => {
+
+    stateCodeMappingObject.forEach((state) => {
+
+      var ConfirmedCases = 0;
+      var RecoveredCases = 0;
+      var DeathCases = 0;
+
+      const getConfirmedCasesArray = result.data.filter(obj => obj.Status === "Confirmed");
+        getConfirmedCasesArray.forEach((obj) => {
+          ConfirmedCases += Number(obj[state.code]);
+        });
+
+        const getRecoveredCasesArray = result.data.filter(obj => obj.Status === "Recovered");
+        getRecoveredCasesArray.forEach((obj) => {
+           RecoveredCases += Number(obj[state.code]);
+        });
+
+        const getDeathCasesArray = result.data.filter(obj => obj.Status === "Deceased");
+        getDeathCasesArray.forEach((obj) => {
+           DeathCases += Number(obj[state.code]);
+        });
+
+        const ActiveCases = ConfirmedCases - (RecoveredCases + DeathCases);
+        
+
+        ConfirmedCasesStateWiseArray.push(ConfirmedCases);
+        ActiveCasesStateWiseArray.push(ActiveCases);
+        RecoveredCasesStateWiseArray.push(RecoveredCases);
+        DeathCasesStateWiseArray.push(DeathCases);
+        
+      });
+
+      const { ConfirmMax, ActiveMax, RecoveredMax, DeathMax } = findMax(ConfirmedCasesStateWiseArray, ActiveCasesStateWiseArray, RecoveredCasesStateWiseArray, DeathCasesStateWiseArray);
+      const { ConfirmMin, ActiveMin, RecoveredMin, DeathMin } = findMin(ConfirmedCasesStateWiseArray, ActiveCasesStateWiseArray, RecoveredCasesStateWiseArray, DeathCasesStateWiseArray);
+
+      const {
+        ConfirmLevels,
+        ActiveLevels,
+        RecoveredLevels,
+        DeathLevels
+       } = covidLevelCalculator(ConfirmMax, ActiveMax, RecoveredMax, DeathMax , ConfirmMin, ActiveMin, RecoveredMin, DeathMin );
+
+
+    stateCodeMappingObject.forEach((state) => {
+
+      var ConfirmedCases = 0;
+      var RecoveredCases = 0;
+      var DeathCases = 0;
+
+      const getConfirmedCasesArray = result.data.filter(obj => obj.Status === "Confirmed");
+        getConfirmedCasesArray.forEach((obj) => {
+          ConfirmedCases += Number(obj[state.code]);
+        });
+
+        const getRecoveredCasesArray = result.data.filter(obj => obj.Status === "Recovered");
+        getRecoveredCasesArray.forEach((obj) => {
+           RecoveredCases += Number(obj[state.code]);
+        });
+
+        const getDeathCasesArray = result.data.filter(obj => obj.Status === "Deceased");
+        getDeathCasesArray.forEach((obj) => {
+           DeathCases += Number(obj[state.code]);
+        });
+
+        const ActiveCases = ConfirmedCases - (RecoveredCases + DeathCases);
+
+         const ConfirmLevel = covidLevelSetter(ConfirmedCases, ConfirmLevels);
+         const ActiveLevel = covidLevelSetter(ActiveCases, ActiveLevels);
+         const RecoveredLevel = covidLevelSetter(RecoveredCases, RecoveredLevels);
+         const DeathLevel = covidLevelSetter(DeathCases, DeathLevels);
+      
+         GetCovidLevelStateWiseArray.push({
+           name: state.name,
+           ConfirmLevel,
+           ActiveLevel,
+           RecoveredLevel,
+           DeathLevel 
+         });
+        
+      });
+
+      res.json(GetCovidLevelStateWiseArray);
+
+    }).catch(err => console.log(err));
+    
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
 function handleGetDataAllStateWise(req, res) {
   try {
 
-    var totalConfirmedCases = 0;
-    var totalRecoveredCases = 0;
-    var totalDeathCases = 0;
     var GetDataAllArrayStateWise = [];
     
      CovidData.findOne({}).lean().then(async (result) => {
-
-      const getConfirmedCasesArray = await result.data.filter(obj => obj.Status === "Confirmed");
-      getConfirmedCasesArray.forEach((obj) => {
-       totalConfirmedCases += Number(obj.TT);
-       });
-
-      
-     const getRecoveredCasesArray = await result.data.filter(obj => obj.Status === "Recovered");
-     getRecoveredCasesArray.forEach((obj) => {
-         totalRecoveredCases += Number(obj.TT);
-       });
-
-
-     const getDeathCasesArray = await result.data.filter(obj => obj.Status === "Deceased");
-     getDeathCasesArray.forEach((obj) => {
-         totalDeathCases += Number(obj.TT);
-     });
-
-
-     const totalActiveCases = totalConfirmedCases - (totalRecoveredCases + totalDeathCases); 
-
-    
+ 
         stateCodeMappingObject.forEach((state) => {
 
           var ConfirmedCases = 0;
@@ -213,23 +367,6 @@ function handleGetDataAllStateWise(req, res) {
             const RecoveredPercentage = (RecoveredCases/ConfirmedCases) * 100;
             const DeathPercentage = (DeathCases/ConfirmedCases) * 100;
 
-            const [
-              averageConfirmedCases,
-              averageActiveCases,
-              averageRecoveredCases,
-              averageDeathCases
-            ] = averageCases(totalConfirmedCases, totalActiveCases, totalRecoveredCases, totalDeathCases);
-            
-
-            const ConfirmedCasesLevelArray = covidLevelGenerator(averageConfirmedCases);
-            const ActiveCasesLevelArray = covidLevelGenerator(averageActiveCases);
-            const RecoveredCasesLevelArray = covidLevelGenerator(averageRecoveredCases);
-            const DeathCasesLevelArray = covidLevelGenerator(averageDeathCases);
-
-            const ConfirmedLevel = covidLevelCalculator(ConfirmedCases, ConfirmedCasesLevelArray);
-            const ActiveLevel = covidLevelCalculator(ConfirmedCases, ActiveCasesLevelArray);
-            const RecoveredLevel = covidLevelCalculator(ConfirmedCases, RecoveredCasesLevelArray);
-            const DeathLevel = covidLevelCalculator(ConfirmedCases, DeathCasesLevelArray);
 
            GetDataAllArrayStateWise.push({
              name: state.name,
@@ -237,38 +374,36 @@ function handleGetDataAllStateWise(req, res) {
                {
                  status: "Confirmed",
                  data: {
-                    ConfirmedCases,
-                    ConfirmedLevel
+                    ConfirmedCases
                  } 
                },
                {
                 status: "Active",
                 data: {
                    ActiveCases,
-                   ActivePercentage,
-                   ActiveLevel
+                   ActivePercentage
                 } 
               },
               {
                 status: "Recovered",
                 data: {
                    RecoveredCases,
-                   RecoveredPercentage,
-                   RecoveredLevel
+                   RecoveredPercentage
                 } 
               },
               {
                 status: "Death",
                 data: {
                    DeathCases,
-                   DeathPercentage,
-                   DeathLevel
+                   DeathPercentage
                 } 
               }
              ]
            })
             
           });
+
+
           
       res.json(GetDataAllArrayStateWise);
     
