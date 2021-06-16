@@ -316,10 +316,25 @@ function handleGetCovidLevelStateWise(req, res) {
       
          GetCovidLevelStateWiseArray.push({
            name: state.name,
-           ConfirmLevel,
-           ActiveLevel,
-           RecoveredLevel,
-           DeathLevel 
+           info: [
+             {
+              status: "Confirmed",
+              ConfirmLevel
+             },
+             {
+              status: "Active",
+              ActiveLevel
+             },
+             {
+              status: "Recovered",
+              RecoveredLevel
+             },
+             {
+              status: "Deceased",
+              DeathLevel
+             }
+           ]           
+
          });
         
       });
