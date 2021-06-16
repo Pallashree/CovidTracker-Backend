@@ -389,28 +389,28 @@ function handleGetDataAllStateWise(req, res) {
                {
                  status: "Confirmed",
                  data: {
-                    ConfirmedCases
+                    cases: ConfirmedCases
                  } 
                },
                {
                 status: "Active",
                 data: {
-                   ActiveCases,
-                   ActivePercentage
+                   cases: ActiveCases,
+                   percentage: ActivePercentage
                 } 
               },
               {
                 status: "Recovered",
                 data: {
-                   RecoveredCases,
-                   RecoveredPercentage
+                   cases: RecoveredCases,
+                   percentage: RecoveredPercentage
                 } 
               },
               {
                 status: "Death",
                 data: {
-                   DeathCases,
-                   DeathPercentage
+                   cases: DeathCases,
+                   percentage: DeathPercentage
                 } 
               }
              ]
