@@ -128,30 +128,25 @@ function handleGetDataAll(req, res) {
      res.json([
        {
          status: "Confirmed",
-         data: {
-          totalConfirmedCases
-         },
+         cases: totalConfirmedCases
+
        },
        {
         status: "Active",
-        data: {
-         totalActiveCases,
-         totalActivePercentage
-        }
+        cases: totalActiveCases,
+        percentage: totalActivePercentage
+
        },
        {
         status: "Recovered",
-        data: {
-          totalRecoveredCases,
-          totalRecoveredPercentage
-        }
+        cases:  totalRecoveredCases,
+        percentage: totalRecoveredPercentage
+
        },
        {
         status: "Deceased",
-        data: {
-          totalDeathCases,
-          totalDeathPercentage
-        }
+        cases: totalDeathCases,
+        percentage: totalDeathPercentage
        }
      ]);
          
@@ -165,72 +160,6 @@ function handleGetDataAll(req, res) {
    }
 }
 
-
-function handleCovidLevels() {
-  try {
-    const ConfirmedCasesStateWiseArray = [];
-    const ActiveCasesStateWiseArray = [];
-    const RecoveredCasesStateWiseArray = [];
-    const DeathCasesStateWiseArray = [];
-
-    CovidData.findOne({}).lean().then(async (result) => {
-
-    stateCodeMappingObject.forEach((state) => {
-
-      var ConfirmedCases = 0;
-      var RecoveredCases = 0;
-      var DeathCases = 0;
-
-      const getConfirmedCasesArray = result.data.filter(obj => obj.Status === "Confirmed");
-        getConfirmedCasesArray.forEach((obj) => {
-          ConfirmedCases += Number(obj[state.code]);
-        });
-
-        const getRecoveredCasesArray = result.data.filter(obj => obj.Status === "Recovered");
-        getRecoveredCasesArray.forEach((obj) => {
-           RecoveredCases += Number(obj[state.code]);
-        });
-
-        const getDeathCasesArray = result.data.filter(obj => obj.Status === "Deceased");
-        getDeathCasesArray.forEach((obj) => {
-           DeathCases += Number(obj[state.code]);
-        });
-
-        const ActiveCases = ConfirmedCases - (RecoveredCases + DeathCases);
-        
-
-        ConfirmedCasesStateWiseArray.push(ConfirmedCases);
-        ActiveCasesStateWiseArray.push(ActiveCases);
-        RecoveredCasesStateWiseArray.push(RecoveredCases);
-        DeathCasesStateWiseArray.push(DeathCases);
-        
-      });
-
-      const { ConfirmMax, ActiveMax, RecoveredMax, DeathMax } = findMax(ConfirmedCasesStateWiseArray, ActiveCasesStateWiseArray, RecoveredCasesStateWiseArray, DeathCasesStateWiseArray);
-      const { ConfirmMin, ActiveMin, RecoveredMin, DeathMin } = findMin(ConfirmedCasesStateWiseArray, ActiveCasesStateWiseArray, RecoveredCasesStateWiseArray, DeathCasesStateWiseArray);
-
-      const {
-        ConfirmLevels,
-        ActiveLevels,
-        RecoveredLevels,
-        DeathLevels
-       } = covidLevelCalculator(ConfirmMax, ActiveMax, RecoveredMax, DeathMax , ConfirmMin, ActiveMin, RecoveredMin, DeathMin );
-
-      const arr = {
-        ConfirmLevels,
-        ActiveLevels,
-        RecoveredLevels,
-        DeathLevels
-      };
-
-       return arr;
-
-    });
-    
-  } catch (error) {
-    console.log(error)
-  }
-}
 
 
 function handleGetCovidLevelStateWise(req, res) {
