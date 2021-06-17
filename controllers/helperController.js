@@ -128,25 +128,27 @@ function handleGetDataAll(req, res) {
      res.json([
        {
          status: "Confirmed",
-         cases: totalConfirmedCases
-
+         cases: totalConfirmedCases,
+         color: "#ff073a"
        },
        {
         status: "Active",
         cases: totalActiveCases,
-        percentage: totalActivePercentage
-
+        percentage: totalActivePercentage,
+        color: "#007bff"
        },
        {
         status: "Recovered",
         cases:  totalRecoveredCases,
-        percentage: totalRecoveredPercentage
+        percentage: totalRecoveredPercentage,
+        color: "#28a745"
 
        },
        {
         status: "Deceased",
         cases: totalDeathCases,
-        percentage: totalDeathPercentage
+        percentage: totalDeathPercentage,
+        color: "#6c757d"
        }
      ]);
          
