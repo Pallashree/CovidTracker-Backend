@@ -447,24 +447,27 @@ function handleGetDataStateWiseDaily(req, res) {
 
       CovidData.findOne({}).lean().then((result) => {
 
-         const confirmedArray = result.data.filter(obj => obj.Status === "Confirmed");
+         const confirmedArray = result.data.filter(obj => obj.Status === "Confirmed").slice(-Number(timeSpan));
          confirmedArray.forEach((obj) => {
           stateCodeMappingObject.forEach((state) => {
-            confirmedCountArray.push(Number(obj[state.code]));
+            if(state.code === stateCode)
+              confirmedCountArray.push(Number(obj[state.code]));
           });
          });
        
-         const recoveredArray = result.data.filter(obj => obj.Status === "Recovered");
+         const recoveredArray = result.data.filter(obj => obj.Status === "Recovered").slice(-Number(timeSpan));
          recoveredArray.forEach((obj) => {
           stateCodeMappingObject.forEach((state) => {
-            recoveredCountArray.push(Number(obj[state.code]));
+            if(state.code === stateCode)
+              recoveredCountArray.push(Number(obj[state.code]));
           });
          });
         
-         const deathArray = result.data.filter(obj => obj.Status === "Deceased");
+         const deathArray = result.data.filter(obj => obj.Status === "Deceased").slice(-Number(timeSpan));
          deathArray.forEach((obj) => {
           stateCodeMappingObject.forEach((state) => {
-            deathCountArray.push(Number(obj[state.code]));
+            if(state.code === stateCode)
+              deathCountArray.push(Number(obj[state.code]));
           });
          }); 
 
