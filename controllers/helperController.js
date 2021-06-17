@@ -480,19 +480,19 @@ function handleGetDataStateWiseDaily(req, res) {
       const GetDataStateWiseDaily = [
         {
           status: "Confirmed",
-          CdataMax,
+          dataMax: CdataMax,
           color: "rgba(255, 224, 230, 1)",
           data: []
         },
         {
           status: "Recovered",
-          RdataMax,
+          dataMax: RdataMax,
           color: "rgba(228, 244, 232, 1)",
           data: []
         },
         {
           status: "Deceased",
-          DdataMax,
+          dataMax: DdataMax,
           color: "rgba(240, 240, 240, 1)",
           data: []
         }
