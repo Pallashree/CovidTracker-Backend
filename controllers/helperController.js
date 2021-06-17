@@ -441,22 +441,64 @@ function handleGetDataStateWiseDaily(req, res) {
 
       const { stateCode, timeSpan } = req.query;
 
+      var confirmedCountArray = [];
+      var recoveredCountArray = [];
+      var deathCountArray = [];
+
+      CovidData.findOne({}).lean().then((result) => {
+
+         const confirmedArray = result.data.filter(obj => obj.Status === "Confirmed");
+         confirmedArray.forEach((obj) => {
+          stateCodeMappingObject.forEach((state) => {
+            confirmedCountArray.push(Number(obj[state.code]));
+          });
+         });
+       
+         const recoveredArray = result.data.filter(obj => obj.Status === "Recovered");
+         recoveredArray.forEach((obj) => {
+          stateCodeMappingObject.forEach((state) => {
+            recoveredCountArray.push(Number(obj[state.code]));
+          });
+         });
+        
+         const deathArray = result.data.filter(obj => obj.Status === "Deceased");
+         deathArray.forEach((obj) => {
+          stateCodeMappingObject.forEach((state) => {
+            deathCountArray.push(Number(obj[state.code]));
+          });
+         }); 
+
+    
+      const CdataMax = Math.max.apply(Math, confirmedCountArray);
+      
+      const RdataMax = Math.max.apply(Math, recoveredCountArray);
+
+      const DdataMax = Math.max.apply(Math, deathCountArray);
+
+        
+
       const GetDataStateWiseDaily = [
         {
           status: "Confirmed",
+          CdataMax,
+          color: "rgba(255, 224, 230, 1)",
           data: []
         },
         {
           status: "Recovered",
+          RdataMax,
+          color: "rgba(228, 244, 232, 1)",
           data: []
         },
         {
           status: "Deceased",
+          DdataMax,
+          color: "rgba(240, 240, 240, 1)",
           data: []
         }
       ];
 
-      CovidData.findOne({}).lean().then((result) => {
+     
 
 
           const getConfirmedCasesArray = result.data.filter(obj => obj.Status === "Confirmed").slice(-Number(timeSpan));
