@@ -31,6 +31,11 @@ const routes = [
     method: 'GET',
     handler: handleGetCovidLevelStateWise
   },
+  {
+    path: '/getStateNames',
+    method: 'GET',
+    handler: handleGetStateNames
+  },
   // {
   //   path: '/',
   //   method: 'GET',
@@ -476,6 +481,24 @@ function handleGetDataStateWiseDaily(req, res) {
   } catch (error) {
     res.send(new createError.InternalServerError());
   }
+}
+
+
+function handleGetStateNames(req, res) {
+   try {
+     if(!req.query) throw new createError.BadRequest();
+     else {
+       const { searchTerm } = req.query;
+       var searchResulltsArray = [];
+       if(searchTerm) {
+        searchResulltsArray = stateCodeMappingObject.filter((state) => state.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        res.send(searchResulltsArray);
+       }
+     }
+     
+   } catch (error) {
+    res.send(new createError.InternalServerError());
+   }
 }
 module.exports = {routes, setRoutes};
 
