@@ -146,4 +146,27 @@ const stateCodeMappingObject = [
   
 ];
 
-module.exports = stateCodeMappingObject;
+const MonthMappingArray = [
+  {
+    displayName: "January",
+    monthNumber: "01"
+  },
+  {
+    displayName: "February",
+    monthNumber: "02"
+  },
+  {
+    displayName: "March",
+    monthNumber: "03"
+  },
+  {
+    displayName: "April",
+    monthNumber: "04"
+  },
+  {
+    displayName: "May",
+    monthNumber: "05"
+  }
+]
+
+module.exports = { stateCodeMappingObject, MonthMappingArray };

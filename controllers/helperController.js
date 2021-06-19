@@ -2,7 +2,7 @@ const path = require('path');
 const csvtojson = require('csvtojson');
 const createError = require('http-errors');
 const CovidData = require('../models/covidDataSchema');
-const stateCodeMappingObject = require('./dataMapping');
+const { stateCodeMappingObject, MonthMappingArray } = require('./dataMapping');
 const { covidLevelSetter, covidLevelCalculator, findMax, findMin } = require('./helperFunctions');
 
 const routes = [
@@ -40,6 +40,11 @@ const routes = [
     path: '/getDataByStateCode/:stateCode',
     method: 'GET',
     handler: handleGetDataByStateCode
+  },
+  {
+    path: '/getDataStateWiseMonthly',
+    method: 'GET',
+    handler: handleGetDataStateWiseMonthly
   }
 
 ];
@@ -577,6 +582,88 @@ function handleGetStateNames(req, res) {
     res.send(new createError.InternalServerError());
    }
 }
+
+function handleGetDataStateWiseMonthly(req, res) {
+  try {
+    if(!req.query) throw new createError.BadRequest();
+    else {
+      
+      const { stateCode } = req.query;
+
+      CovidData.findOne({}).lean().then((result) => {
+
+        var confirmedMonthCases = 0;
+        var recoveredMonthCases = 0;
+        var deathMonthCases = 0;
+
+        var MonthWiseDataArray = [];
+  
+        MonthMappingArray.forEach((month) => {
+
+        const confirmedArray = result.data.filter(obj => obj.Status === "Confirmed");
+        confirmedArray.forEach((obj) => {
+          
+            if(month.monthNumber === obj.Date_YMD.split('-')[1]) {
+              confirmedMonthCases += Number(obj[stateCode]); 
+            }
+          })
+
+        const recoveredArray = result.data.filter(obj => obj.Status === "Recovered");
+        recoveredArray.forEach((obj) => {
+      
+            if(month.monthNumber === obj.Date_YMD.split('-')[1]) {
+              recoveredMonthCases += Number(obj[stateCode]) 
+            }
+          })
+
+        const deceasedArray = result.data.filter(obj => obj.Status === "Deceased");
+        deceasedArray.forEach((obj) => {
+          
+            if(month.monthNumber === obj.Date_YMD.split('-')[1]) {
+              deathMonthCases += Number(obj[stateCode]) 
+            }
+          })    
+          
+      const activeMonthCases = confirmedMonthCases - (recoveredMonthCases + deathMonthCases);
+
+          MonthWiseDataArray.push({
+             month: month.displayName,
+             data: [
+               {
+                 status: "Confirmed",
+                 cases: confirmedMonthCases
+               },
+               {
+                status: "Active",
+                cases: activeMonthCases
+               },
+               {
+                status: "Recovered",
+                cases: recoveredMonthCases
+              },
+              {
+                status: "Deceased",
+                cases: deathMonthCases
+              }
+             ]
+          });
+
+        });
+  
+
+        res.json(MonthWiseDataArray);
+      })
+      .catch((error) => {
+        res.send(new createError.ExpectationFailed());
+      })
+
+    }
+    
+  } catch (error) {
+    res.send(new createError.InternalServerError());
+  }
+}
+
 module.exports = {routes, setRoutes};
 
 
