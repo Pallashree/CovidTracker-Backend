@@ -36,11 +36,11 @@ const routes = [
     method: 'GET',
     handler: handleGetStateNames
   },
-  // {
-  //   path: '/',
-  //   method: 'GET',
-  //   handler: handleCovidLevels
-  // }
+  {
+    path: '/getDataByStateCode/:stateCode',
+    method: 'GET',
+    handler: handleGetDataByStateCode
+  }
 
 ];
 
@@ -365,6 +365,83 @@ function handleGetDataAllStateWise(req, res) {
     });
     
     
+  } catch (error) {
+    res.send(new createError.InternalServerError());
+  }
+}
+
+function handleGetDataByStateCode(req, res) {
+  try {
+    if(!req.params) throw new createError.BadRequest();
+    else {
+      const stateCode = req.params.stateCode;
+
+      CovidData.findOne({}).lean().then(async (result) => {
+
+          var ConfirmedCases = 0;
+          var RecoveredCases = 0;
+          var DeathCases = 0;
+          var GetDataByStateCodeArray = [];
+  
+          const getConfirmedCasesArray = result.data.filter(obj => obj.Status === "Confirmed");
+            getConfirmedCasesArray.forEach((obj) => {
+              ConfirmedCases += Number(obj[stateCode]);
+            });
+
+            const getRecoveredCasesArray = result.data.filter(obj => obj.Status === "Recovered");
+            getRecoveredCasesArray.forEach((obj) => {
+               RecoveredCases += Number(obj[stateCode]);
+            });
+
+            const getDeathCasesArray = result.data.filter(obj => obj.Status === "Deceased");
+            getDeathCasesArray.forEach((obj) => {
+               DeathCases += Number(obj[stateCode]);
+            });
+
+            const ActiveCases = ConfirmedCases - ( RecoveredCases + DeathCases );
+            const ActivePercentage = (ActiveCases/ConfirmedCases) * 100;
+            const RecoveredPercentage = (RecoveredCases/ConfirmedCases) * 100;
+            const DeathPercentage = (DeathCases/ConfirmedCases) * 100;
+
+
+           GetDataByStateCodeArray.push(
+               {
+                 status: "Confirmed",
+                 data: {
+                    cases: ConfirmedCases
+                 } 
+               },
+               {
+                status: "Active",
+                data: {
+                   cases: ActiveCases,
+                   percentage: ActivePercentage
+                } 
+              },
+              {
+                status: "Recovered",
+                data: {
+                   cases: RecoveredCases,
+                   percentage: RecoveredPercentage
+                } 
+              },
+              {
+                status: "Deceased",
+                data: {
+                   cases: DeathCases,
+                   percentage: DeathPercentage
+                } 
+              }
+           );
+          
+      res.json(GetDataByStateCodeArray);    
+         
+     })
+     .catch(error => {
+      res.send(new createError.ExpectationFailed());
+    });
+
+    }
   } catch (error) {
     res.send(new createError.InternalServerError());
   }
