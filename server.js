@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const covidRouter = require('./controllers/covidDataController');
+const covidDataIndiaStateRouter = require('./controllers/IndiaStateController/covidDataIndiaStateController');
+const covidDataStateDistrictRouter = require('./controllers/StateDistrictController/covidDataStateDistrictController');
 require('./models/dbConnection');
 
 const app = express();
@@ -17,5 +18,7 @@ app.listen(port, () => {
   console.log(`Express server Running at port: ${port}`);
 });
 
-app.use('/Api', covidRouter);
+app.use('/Api', covidDataIndiaStateRouter);
+app.use('/Api', covidDataStateDistrictRouter);
+
 
