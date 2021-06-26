@@ -628,23 +628,27 @@ function handleGetDataStateWiseMonthly(req, res) {
           MonthWiseDataArray.push({
              month: month.displayName,
              data: [
-               {
-                 status: "Confirmed",
-                 cases: confirmedMonthCases
-               },
-               {
+                {
+                  status: "Confirmed",
+                  cases: confirmedMonthCases,
+                  color: "#ff073a"
+                },
+                {
                 status: "Active",
-                cases: activeMonthCases
-               },
-               {
+                cases: activeMonthCases,
+                color: "#007bff"
+                },
+                {
                 status: "Recovered",
-                cases: recoveredMonthCases
+                cases: recoveredMonthCases,
+                color: "#28a745"
               },
               {
                 status: "Deceased",
-                cases: deathMonthCases
+                cases: deathMonthCases,
+                color: "#6c757d"
               }
-             ]
+            ]
           });
 
         });
